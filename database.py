@@ -10,6 +10,23 @@ def rowcount():
     conn.close()
     return count
 
+def getcontent(rowid):
+    conn = sqlite3.connect('bills/currentbill.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM bill WHERE rowid=(?)",rowid)
+    a = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return a[2],a[3],a[4],a[5]
+
+def setcontent(id,d1,d2,d3,d4):
+    conn = sqlite3.connect('bills/currentbill.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE bill set CONSIGNEE = ?, DESTINATION = ?, WEIGHT = ?, AMOUNT = ? WHERE SNO = ?",(d1,d2,d3,d4,id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
 def add_row(sno,date,consignee,destination,weight,amount):
     conn = sqlite3.connect('bills/currentbill.db')
     cursor = conn.cursor()
@@ -67,6 +84,15 @@ def getbno():
     conn.close()
     return b
 
+def setbno(no):
+    conn = sqlite3.connect('bills/billno.db')
+    cursor = conn.cursor()
+    a = cursor.execute("UPDATE billno SET bno=(?) WHERE rowid=1",str(no))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# setbno(1)
 def getbnowithoutincrement():
     conn = sqlite3.connect('bills/billno.db')
     cursor = conn.cursor()
