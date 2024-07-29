@@ -9,6 +9,7 @@ The Invoice Generator Application is a Python GUI app built using the tkinter li
 - Edit functionality to modify any entry in the table.
 - Delete functionality to remove the last row from the table.
 - Download button to generate an invoice in PDF format based on the entered values.
+- Previous Invoice to edit/add/regenerate previous invoices.
 
 ## Prerequisites
 

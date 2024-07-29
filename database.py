@@ -1,88 +1,98 @@
 import sqlite3
 
 
-def rowcount():
-    conn = sqlite3.connect('bills/currentbill.db')
+def createtable(bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM bill")
+    cursor.execute(f"""CREATE TABLE IF NOT EXISTS b{bno}
+                   (
+                   SNO INT,
+                   DATE TEXT,
+                   CNO INT,
+                   CONSIGNEE TEXT,
+                   DESTINATION TEXT,
+                   WEIGHT REAL,
+                   AMOUNT REAL
+                   )""")
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def rowcount(bno):
+    conn = sqlite3.connect('bills/invoice.db')
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT COUNT(*) FROM b{bno}")
     count = cursor.fetchone()[0]
     cursor.close()
     conn.close()
     return count
 
-def getcontent(rowid):
-    conn = sqlite3.connect('bills/currentbill.db')
+def getcontent(rowid,bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM bill WHERE rowid=(?)",rowid)
+    cursor.execute(f"SELECT * FROM b{bno} WHERE rowid=(?)",rowid)
     a = cursor.fetchone()
     cursor.close()
     conn.close()
-    return a[2],a[3],a[4],a[5]
+    return a[1],a[2],a[3],a[4],a[5],a[6]
 
-def setcontent(id,d1,d2,d3,d4):
-    conn = sqlite3.connect('bills/currentbill.db')
+def setcontent(id,d1,d2,d3,d4,d5,d6,bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    cursor.execute("UPDATE bill set CONSIGNEE = ?, DESTINATION = ?, WEIGHT = ?, AMOUNT = ? WHERE SNO = ?",(d1,d2,d3,d4,id))
+    cursor.execute(f"UPDATE b{bno} set DATE = ?, CNO = ?, CONSIGNEE = ?, DESTINATION = ?, WEIGHT = ?, AMOUNT = ? WHERE SNO = ?",(d1,d2,d3,d4,d5,d6,id))
     conn.commit()
     cursor.close()
     conn.close()
 
-def add_row(sno,date,consignee,destination,weight,amount):
-    conn = sqlite3.connect('bills/currentbill.db')
+def add_row(sno,date,cno,consignee,destination,weight,amount,bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    t=(sno,date,consignee,destination,weight,amount)
-    cursor.execute("INSERT INTO bill VALUES (?,?,?,?,?,?)",t)
+    t=(sno,date,cno,consignee,destination,weight,amount)
+    cursor.execute(f"INSERT INTO b{bno} VALUES (?,?,?,?,?,?,?)",t)
     conn.commit()
     conn.close()
 
    
 
-def allrows():
-    conn = sqlite3.connect('bills/currentbill.db')
+def allrows(bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM bill")
+    cursor.execute(f"SELECT * FROM b{bno}")
     b= cursor.fetchall()
     conn.commit()
     cursor.close()
     conn.close()
     return b
 
-def deleterow():
-    conn = sqlite3.connect('bills/currentbill.db')
+def deleterow(bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM bill WHERE rowid=(SELECT MAX(rowid) FROM bill);")
+    cursor.execute(f"DELETE FROM b{bno} WHERE rowid=(SELECT MAX(rowid) FROM b{bno});")
     conn.commit()
     cursor.close()
     conn.close()
 
-def totalamount():
-    conn = sqlite3.connect('bills/currentbill.db')
+def totalamount(bno):
+    conn = sqlite3.connect('bills/invoice.db')
     cursor = conn.cursor()
-    a=cursor.execute("SELECT SUM(AMOUNT) FROM bill")
+    a=cursor.execute(f"SELECT SUM(AMOUNT) FROM b{bno}")
     b= a.fetchone()
     conn.commit()
     cursor.close()
     conn.close()
     return b
 
-def deleteall():
-    conn = sqlite3.connect('bills/currentbill.db')
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM bill")
-    conn.commit()
-    cursor.close()
-    conn.close()
 
-def getbno():
+def incrementbno():
     conn = sqlite3.connect('bills/billno.db')
     cursor = conn.cursor()
     a = cursor.execute("SELECT bno FROM billno WHERE rowid=1")
     b = a.fetchone()[0]
-    cursor.execute("UPDATE billno SET bno=(?) WHERE rowid=1",str(b+1))
+    cursor.execute("UPDATE billno SET bno=(?) WHERE rowid=1",(str(b+1),))
     conn.commit()
     cursor.close()
     conn.close()
-    return b
+
 
 def setbno(no):
     conn = sqlite3.connect('bills/billno.db')
@@ -91,8 +101,6 @@ def setbno(no):
     conn.commit()
     cursor.close()
     conn.close()
-
-# setbno(1)
 def getbnowithoutincrement():
     conn = sqlite3.connect('bills/billno.db')
     cursor = conn.cursor()

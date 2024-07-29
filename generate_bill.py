@@ -9,23 +9,32 @@ import database
 date=datetime.date.today().strftime("%d/%m/%Y")
 month=datetime.date.today().strftime("%B")
 
-def generatepdf(billno):
+def generatepdf(billno,d1,d2,d3,d4):
 
-    data = getdata(billno)
-
+    data = getdata(billno,d1,d2,d3,d4)
     # Define the styles for the table
-    style = TableStyle([('SPAN', (0, 1), (1, 1)),
-                        ('OUTLINE', (0, 0), (-1, -1), 1, colors.black),
-                        ('ALIGN', (0, 4), (-1, -1), 'CENTER'),                   
+    style = TableStyle([('OUTLINE', (0, 0), (-1, -1), 1, colors.black),
+                        ('ALIGN', (0, 4), (-1, -1), 'CENTER'),
+                        ('ALIGN', (3, 1), (3, 1), 'CENTER'), 
+                        ('ALIGN', (3, 0), (3, 0), 'CENTER'),            
                         ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                        ('TEXTCOLOR', (1, 1), (1, 1), colors.red),
+                        ('TEXTCOLOR', (3, 1), (3, 1), colors.red),
+                        ('TEXTCOLOR',(3,0),(3,0),colors.red),
                         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-                        ('FONTSIZE', (0, 0), (-1, -1), 12),
+                        ('FONTSIZE', (0, 0), (-1, -1), 11),
+                        ('FONTSIZE', (3,1),(3,1) , 16),
+                        ('FONTSIZE', (3,0),(3,0) , 12),
+                        ('FONTNAME', (3, 1), (3, 1), 'Times-BoldItalic'),
                         ('BOTTOMPADDING', (0, 0), (-1, -1), 7),
+                        ('TOPPADDING',(3,1),(3,1),5),
                         ('GRID', (0, 4), (-1, -4), 1, colors.black),
-                        ('GRID', (-1, -3), (-1, -3), 1, colors.black)])
+                        ('GRID', (-1, -3), (-1, -3), 1, colors.black),
+                        ('SPAN', (5,1),(6,1)),
+                        ('SPAN',(-3,2),(-1,2))])
 
     # Create the table and add the data and styles
-    table = Table(data,colWidths=[50,70,220,70])
+    table = Table(data,colWidths=[40,60,75,190,85,60,60])
     table.setStyle(style)
 
     # Create the PDF document and add the table
@@ -34,44 +43,41 @@ def generatepdf(billno):
     doc.build([table])
 
 
-def getdata(billno): 
+def getdata(billno,d1,d2,d3,d4): 
     res=list()
-    res.append([None]*6)
-    res.append([Paragraph(f"Bill No. : <font color='red'>{billno.zfill(3)}</font>",ParagraphStyle(
-    name='HelveticaBold12',
-    fontName='Helvetica',
-    fontSize=12,
-    wordWrap=False,
-    width=200
-)),None,None,None,"Date : "+date])
-    res.append([None,None,None,None,"Billing Month : "+month])
-    res.append(["To, _____________________________________________________________________________",None,None,None,None,None])
-    res.append(["S.No.","Date","Consignee","Dest.","Weight","Amount"])
+    str1="Internship II project - Invoice Generator" if d2=="" else d2
+    str2="To, _______________________________________________________________________________________" if d1=="" else "To, "+d1
+    res.append([None,None,None,str1,None,None,None])
+    res.append(["Bill No. : ","  "+billno.zfill(3),None,"INVOICE",None,"    Date : "+d3,None])
+    res.append([None,None,None,None,f"                   Billing Month : {d4}",None,None])
+    res.append([str2,None,None,None,None,None,None])
+    res.append(["S.No.","Date","Consig. No.","Consignee","Dest.","Weight","Amount"])
     li=list()
     total=0
 
 
-    for entry in database.allrows():
+    for entry in database.allrows(billno):
         li=list()
         li.append(entry[0])
         li.append(entry[1])
         li.append(entry[2])
         li.append(entry[3])
         li.append(entry[4])
-        if entry[5]=="":
+        li.append(entry[5])
+        if entry[6]=="":
             li.append(0)
         else:
-            li.append(entry[5])
+            li.append(entry[6])
         
         res.append(li)
         total+=li[-1]
 
     if len(res)<=30:
-        res.extend([[None]*6]*(33-len(res)))
+        res.extend([[None]*7]*(33-len(res)))
     else:
-        res.extend([[None]*6]*3)
-    res[-3]=[None,None,None,None,"TOTAL",total]
-    res[-1]=[None,"Seal & Signature",None,None,None,None]
+        res.extend([[None]*7]*3)
+    res[-3]=[None,None,None,None,None,"TOTAL",total]
+    res[-1]=[None,"Seal & Signature",None,None,None,None,None]
     return res
 
 
